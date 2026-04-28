@@ -129,6 +129,8 @@ http://localhost:5173/
 Responder Dashboard:
 http://localhost:5173/admin
 
+---
+
 ## 👩‍💻 Author
 
 **Simranpreet Kaur**  
