@@ -5,7 +5,7 @@ import google.generativeai as genai
 import os
 from dotenv import load_dotenv
 
-# 🔥 Load .env file
+# 🔥 Load environment variables
 load_dotenv()
 
 # 🔥 Configure Gemini API
@@ -15,6 +15,7 @@ model = genai.GenerativeModel("gemini-pro")
 app = Flask(__name__)
 CORS(app)
 
+# 🔥 Use threading (works on Render)
 socketio = SocketIO(app, cors_allowed_origins="*", async_mode="threading")
 
 alerts = []
@@ -45,9 +46,9 @@ def detect_severity(message):
 
     except Exception as e:
         print("Gemini Error:", e)
-        return "LOW 🟢"  # fallback
+        return "LOW 🟢"
 
-# 🏠 Home Route
+# 🏠 Home route
 @app.route('/')
 def home():
     return "Backend Running 🚨"
@@ -60,15 +61,14 @@ def receive_alert():
     if not data:
         return jsonify({"error": "No data received"}), 400
 
-    # Add default values
     data["time"] = data.get("time", "N/A")
-    data["severity"] = "HIGH 🔴"  # panic = high priority
+    data["severity"] = "HIGH 🔴"
 
     alerts.append(data)
 
     print("New Alert:", data)
 
-    # 🔥 Real-time broadcast
+    # 🔥 Emit real-time alert
     socketio.emit('new_alert', data)
 
     return jsonify({"status": "ok"})
@@ -78,7 +78,7 @@ def receive_alert():
 def get_alerts():
     return jsonify(alerts)
 
-# 💬 Chat System
+# 💬 Chat system
 @socketio.on('send_message')
 def handle_message(data):
     text = data.get("text")
@@ -94,9 +94,15 @@ def handle_message(data):
 
     print("Chat:", response)
 
-    # 🔥 Broadcast message
+    # 🔥 Broadcast chat
     socketio.emit('receive_message', response)
 
-# 🚀 Run server
+# 🚀 Run server (FIXED FOR RENDER)
 if __name__ == '__main__':
-    socketio.run(app, host="0.0.0.0", port=10000)
+    port = int(os.environ.get("PORT", 10000))
+    socketio.run(
+        app,
+        host="0.0.0.0",
+        port=port,
+        allow_unsafe_werkzeug=True
+    )
