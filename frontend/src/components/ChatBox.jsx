@@ -6,6 +6,7 @@ export default function ChatBox({ role }) {
   const [chat, setChat] = useState([]);
 
   useEffect(() => {
+    // remove old listeners (prevents duplicate messages)
     socket.off("receive_message");
 
     socket.on("receive_message", (data) => {
@@ -18,14 +19,23 @@ export default function ChatBox({ role }) {
   const sendMessage = () => {
     if (!message.trim()) return;
 
-    socket.emit("send_message", { text: message, role });
+    socket.emit("send_message", {
+      text: message,
+      role: role,
+    });
+
     setMessage("");
   };
 
+  // 🔥 Quick reply (admin)
   const quickSend = (text) => {
-    socket.emit("send_message", { text, role });
+    socket.emit("send_message", {
+      text,
+      role,
+    });
   };
 
+  // 🎨 Severity color
   const getSeverityColor = (severity) => {
     if (severity?.includes("HIGH")) return "#ef4444";
     if (severity?.includes("MEDIUM")) return "#f97316";
@@ -34,8 +44,9 @@ export default function ChatBox({ role }) {
 
   return (
     <div>
-      <h2>💬 Chat</h2>
+      <h2 style={{ marginBottom: "10px" }}>💬 Live Chat</h2>
 
+      {/* 🧾 CHAT BOX */}
       <div style={styles.chatBox}>
         {chat.map((msg, i) => (
           <div
@@ -54,13 +65,15 @@ export default function ChatBox({ role }) {
               }}
             >
               <b>
-                {msg.role === "admin" ? "👮 Responder" : "👤 User"}
+                {msg.role === "admin"
+                  ? "👮 Responder"
+                  : "👤 User"}
               </b>
               <br />
 
               {msg.text}
 
-              {/* 🔥 ONLY ADMIN sees severity */}
+              {/* 🔥 Only admin sees severity */}
               {role === "admin" && msg.role === "user" && (
                 <div
                   style={{
@@ -73,7 +86,7 @@ export default function ChatBox({ role }) {
                 </div>
               )}
 
-              {/* Admin message status */}
+              {/* ✅ Admin reply status */}
               {msg.role === "admin" && (
                 <div
                   style={{
@@ -90,25 +103,33 @@ export default function ChatBox({ role }) {
         ))}
       </div>
 
+      {/* ✍️ INPUT */}
       <div style={styles.row}>
         <input
           value={message}
           onChange={(e) => setMessage(e.target.value)}
+          placeholder="Type emergency message..."
           style={styles.input}
-          placeholder="Type message..."
         />
         <button onClick={sendMessage} style={styles.btn}>
           Send
         </button>
       </div>
 
+      {/* ⚡ QUICK ACTIONS (ADMIN ONLY) */}
       {role === "admin" && (
         <div style={styles.quickRow}>
-          <button onClick={() => quickSend("Help is on the way 🚑")}>
+          <button
+            onClick={() => quickSend("Help is on the way 🚑")}
+          >
             🚑 Help
           </button>
-          <button onClick={() => quickSend("Stay calm, responders arriving")}>
-            🧑‍🚒 Calm
+          <button
+            onClick={() =>
+              quickSend("Stay calm, responders arriving 🚓")
+            }
+          >
+            🚓 Calm
           </button>
         </div>
       )}

@@ -1,5 +1,7 @@
 import { useState } from "react";
 
+const BASE_URL = "https://crisisconnect-vxsz.onrender.com"; // 🔥 PUT YOUR RENDER URL
+
 export default function PanicButton({ setAlerts }) {
   const [status, setStatus] = useState("");
 
@@ -11,7 +13,7 @@ export default function PanicButton({ setAlerts }) {
         time: new Date().toLocaleTimeString(),
       };
 
-      await fetch("http://127.0.0.1:5000/alert", {
+      await fetch(`${BASE_URL}/alert`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(alert),
